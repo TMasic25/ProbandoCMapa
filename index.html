@@ -1550,18 +1550,18 @@
         // </CHANGE>
 
         async function calculateRoute() {
-            const origin = document.getElementById('origin').value.trim();
-            const destination = document.getElementById('destination').value.trim();
-            const btn = document.getElementById('calculateRouteBtn');
-            
+            const origin = document.getElementById('origin').value;
+            const destination = document.getElementById('destination').value;
+
             if (!origin || !destination) {
-                showStatus('Por favor, ingresa origen y destino', 'error');
+                showStatus('Por favor ingresa origen y destino', 'error');
                 return;
             }
-            
+
+            const btn = document.getElementById('calculateRouteBtn');
             btn.disabled = true;
             btn.textContent = '🔄 Calculando...';
-            
+
             try {
                 showStatus('📍 Buscando ubicación de origen...', 'info');
                 const startCoords = await geocode(origin);

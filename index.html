@@ -7,6 +7,12 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="format-detection" content="telephone=no">
     <title>Calculadora de Viajes - Transportes Masic</title>
+    
+    <!-- Added Leaflet CSS and JS for interactive map with route -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- </CHANGE> -->
+    
     <style>
         * {
             margin: 0;
@@ -295,11 +301,31 @@
             color: #1B9AAA;
         }
 
+        /* Updated map styles for Leaflet */
         #map {
             width: 100%;
             height: 400px;
             border-radius: 8px;
             border: 2px solid #E5E7EB;
+            z-index: 1;
+        }
+        
+        /* Leaflet popup customization */
+        .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .leaflet-popup-content {
+            margin: 12px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        
+        .route-line {
+            color: #1B9AAA;
+            weight: 5;
+            opacity: 0.8;
         }
         /* </CHANGE> */
 
@@ -488,9 +514,10 @@
             border-radius: 12px;
             overflow: hidden;
             border: 2px solid #E5E7EB;
+            background: #F8FAFB;
         }
 
-        .quotation-map-container iframe {
+        .quotation-map-container #quotationMap {
             width: 100%;
             height: 300px;
             border: none;
@@ -770,8 +797,13 @@
                 grid-template-columns: 1fr;
             }
 
+            /* Responsive map height for mobile */
             #map {
                 height: 300px;
+            }
+            
+            .quotation-map-container #quotationMap {
+                height: 250px;
             }
             /* </CHANGE> */
 
@@ -833,7 +865,7 @@
             display: none;
         }
 
-        /* Modified print styles to only show quotation */
+        /* Print styles to show quotation map */
         @media print {
             body {
                 background: white;
@@ -873,6 +905,12 @@
             
             .quotation-map-container {
                 page-break-inside: avoid;
+                display: block !important;
+            }
+            
+            .quotation-map-container #quotationMap {
+                display: block !important;
+                height: 250px !important;
             }
         }
         /* </CHANGE> */
@@ -930,6 +968,90 @@
             </div>
 
             <div id="ratesEditor" class="rates-editor hidden">
+                <h3 style="color: #1B9AAA; margin-bottom: 16px;">⚙️ Configuración de Tarifas y Costos</h3>
+                <div class="rates-section">
+                    <h4>💰 Tarifas</h4>
+                    <div class="rates-grid">
+                        <div class="form-group">
+                            <label>Tarifa Base</label>
+                            <input type="number" id="baseFare" step="100">
+                        </div>
+                        <div class="form-group">
+                            <label>Tarifa KM (hasta 15km)</label>
+                            <input type="number" id="priceKm1" step="10">
+                        </div>
+                        <div class="form-group">
+                            <label>Tarifa KM (15-50km)</label>
+                            <input type="number" id="priceKm2" step="10">
+                        </div>
+                        <div class="form-group">
+                            <label>Tarifa KM (51-99km)</label>
+                            <input type="number" id="priceKm3" step="10">
+                        </div>
+                        <div class="form-group">
+                            <label>Tarifa KM (≥100km)</label>
+                            <input type="number" id="priceKm4" step="10">
+                        </div>
+                        <div class="form-group">
+                            <label>Tarifa MIN (hasta 20min)</label>
+                            <input type="number" id="priceMin1" step="10">
+                        </div>
+                        <div class="form-group">
+                            <label>Tarifa MIN (20-59min)</label>
+                            <input type="number" id="priceMin2" step="10">
+                        </div>
+                        <div class="form-group">
+                            <label>Tarifa MIN (≥60min)</label>
+                            <input type="number" id="priceMin3" step="10">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rates-section">
+                    <h4>🎁 Descuentos (%)</h4>
+                    <div class="rates-grid">
+                        <div class="form-group">
+                            <label>Descuento 1</label>
+                            <input type="number" id="discount1" step="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Descuento 2</label>
+                            <input type="number" id="discount2" step="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Descuento 3</label>
+                            <input type="number" id="discount3" step="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Descuento 4</label>
+                            <input type="number" id="discount4" step="1">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="rates-section">
+                    <h4>⛽ Costos Operacionales</h4>
+                    <div class="rates-grid">
+                        <div class="form-group">
+                            <label>Costo Diesel (x 7km)</label>
+                            <input type="number" id="costDiesel" step="10">
+                        </div>
+                        <div class="form-group">
+                            <label>Costo Aceite (x 10.000km)</label>
+                            <input type="number" id="costOil" step="10000">
+                        </div>
+                        <div class="form-group">
+                            <label>Costo Pastillas (x 20.000km)</label>
+                            <input type="number" id="costBrakes" step="10000">
+                        </div>
+                        <div class="form-group">
+                            <label>Costo Neumáticos (x 40.000km)</label>
+                            <input type="number" id="costTires" step="10000">
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" style="width: 100%;" onclick="saveRates()">💾 Guardar Tarifas</button>
             </div>
 
             <div id="settingsPanel" class="settings-panel hidden">
@@ -1051,7 +1173,9 @@
                             <p><strong>OpenStreetMap</strong></p>
                             <p style="font-size: 12px;">Ingresa origen y destino, luego presiona "Calcular Ruta"</p>
                         </div>
-                        <iframe id="map" frameborder="0"></iframe>
+                        <!-- Changed to div for Leaflet map -->
+                        <div id="map"></div>
+                        <!-- </CHANGE> -->
                     </div>
                 </div>
             </div>
@@ -1096,7 +1220,10 @@
         };
         let scriptUrl = '';
         let currentTrip = null;
-        let currentMapUrl = '';
+        let map = null;
+        let routeLayer = null;
+        let markersLayer = null;
+        let currentRouteCoordinates = null;
         let quotationNumber = 300;
         // </CHANGE>
 
@@ -1107,7 +1234,7 @@
 
                 const savedRates = localStorage.getItem('transportRates');
                 if (savedRates) {
-                    rates = JSON.parse(savedRates);
+                    rates = JSON.JSON.parse(savedRates);
                     if (!rates.discounts) {
                         rates.discounts = [5, 10, 15, 20];
                     }
@@ -1128,7 +1255,6 @@
                 if (savedQuotationNumber) {
                     quotationNumber = parseInt(savedQuotationNumber);
                 }
-                // </CHANGE>
 
                 updateRatesDisplay();
                 updateRatesInputs();
@@ -1140,13 +1266,33 @@
                     document.getElementById('settingsBtn').classList.add('active');
                 }
 
-                document.getElementById('map').src = 'https://www.openstreetmap.org/export/embed.html?bbox=-71.0,-33.5,-70.5,-33.0&layer=mapnik';
+                initializeMap();
                 // </CHANGE>
             } catch (error) {
                 console.error('Error loading data:', error);
                 showStatus('Error al cargar datos guardados', 'error');
             }
         }
+
+        function initializeMap() {
+            if (map) {
+                map.remove();
+            }
+            
+            // Create map centered on Chile
+            map = L.map('map').setView([-33.4489, -70.6693], 10);
+            
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+            
+            // Initialize layers for markers and route
+            markersLayer = L.layerGroup().addTo(map);
+            routeLayer = L.layerGroup().addTo(map);
+        }
+        // </CHANGE>
 
         function formatCurrency(amount) {
             return new Intl.NumberFormat('es-CL', {
@@ -1346,9 +1492,10 @@
 
         async function geocode(address) {
             try {
+                // Rate limiting: wait 1 second between requests
                 await new Promise(resolve => setTimeout(resolve, 1000));
                 
-                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1&addressdetails=1`;
+                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1&addressdetails=1&countrycodes=cl`;
                 const response = await fetch(url, {
                     headers: {
                         'User-Agent': 'TransportesMasic/1.0'
@@ -1370,17 +1517,24 @@
                 }
                 throw new Error(`No se encontró la ubicación: ${address}`);
             } catch (error) {
+                console.error('[v0] Geocoding error:', error);
                 if (error.message.includes('Failed to fetch') || error.message.includes('Load failed')) {
-                    throw new Error(`Problema de conexión. Por favor intenta nuevamente en unos segundos.`);
+                    throw new Error(`Problema de conexión. Por favor intenta nuevamente.`);
                 }
-                throw new Error(`${error.message}`);
+                throw error;
             }
         }
+        // </CHANGE>
 
         async function getRoute(start, end) {
             try {
-                const url = `https://router.project-osrm.org/route/v1/driving/${start.lon},${start.lat};${end.lon},${end.lat}?overview=full&geometries=geojson`;
+                const url = `https://router.project-osrm.org/route/v1/driving/${start.lon},${start.lat};${end.lon},${end.lat}?overview=full&geometries=geojson&steps=true`;
                 const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+                
                 const data = await response.json();
                 
                 if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
@@ -1388,9 +1542,11 @@
                 }
                 throw new Error('No se pudo calcular la ruta entre estos puntos');
             } catch (error) {
+                console.error('[v0] Routing error:', error);
                 throw new Error(`Error al calcular ruta: ${error.message}`);
             }
         }
+        // </CHANGE>
 
         async function calculateRoute() {
             const origin = document.getElementById('origin').value.trim();
@@ -1398,7 +1554,7 @@
             const btn = document.getElementById('calculateRouteBtn');
             
             if (!origin || !destination) {
-                showStatus('⚠️ Por favor, ingresa origen y destino', 'error');
+                showStatus('Por favor, ingresa origen y destino', 'error');
                 return;
             }
             
@@ -1406,11 +1562,13 @@
             btn.textContent = '🔄 Calculando...';
             
             try {
-                showStatus('📍 Buscando ubicaciones...', 'info');
+                showStatus('📍 Buscando ubicación de origen...', 'info');
                 const startCoords = await geocode(origin);
+                
+                showStatus('📍 Buscando ubicación de destino...', 'info');
                 const endCoords = await geocode(destination);
                 
-                showStatus('🛣️ Calculando ruta...', 'info');
+                showStatus('🛣️ Calculando ruta óptima...', 'info');
                 const route = await getRoute(startCoords, endCoords);
                 
                 const distance = (route.distance / 1000).toFixed(2);
@@ -1420,14 +1578,66 @@
                 document.getElementById('distance').value = distance;
                 document.getElementById('duration').value = duration;
                 
-                // Update the map
-                const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${startCoords.lon-0.5},${startCoords.lat-0.5},${endCoords.lon+0.5},${endCoords.lat+0.5}&layer=mapnik&marker=${startCoords.lat},${startCoords.lon}&marker=${endCoords.lat},${endCoords.lon}`;
-                document.getElementById('map').src = mapUrl;
-                currentMapUrl = mapUrl;
+                // Clear previous markers and route
+                markersLayer.clearLayers();
+                routeLayer.clearLayers();
                 
-                showStatus('✅ Ruta calculada exitosamente. Ahora presiona "Calcular Tarifa"', 'success');
+                // Add markers for origin and destination
+                const originMarker = L.marker([startCoords.lat, startCoords.lon], {
+                    icon: L.divIcon({
+                        className: 'custom-marker',
+                        html: '<div style="background: #10B981; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">🅰️</div>',
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 16]
+                    })
+                }).addTo(markersLayer);
+                
+                originMarker.bindPopup(`<strong>📍 Origen</strong><br>${origin}`);
+                
+                const destMarker = L.marker([endCoords.lat, endCoords.lon], {
+                    icon: L.divIcon({
+                        className: 'custom-marker',
+                        html: '<div style="background: #EF4444; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">🅱️</div>',
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 16]
+                    })
+                }).addTo(markersLayer);
+                
+                destMarker.bindPopup(`<strong>📍 Destino</strong><br>${destination}`);
+                
+                // Draw the route line
+                const routeCoordinates = route.geometry.coordinates.map(coord => [coord[1], coord[0]]);
+                currentRouteCoordinates = routeCoordinates;
+                
+                const routeLine = L.polyline(routeCoordinates, {
+                    color: '#1B9AAA',
+                    weight: 6,
+                    opacity: 0.8,
+                    lineJoin: 'round',
+                    lineCap: 'round'
+                }).addTo(routeLayer);
+                
+                // Add a thicker transparent line underneath for better visibility
+                L.polyline(routeCoordinates, {
+                    color: '#FFFFFF',
+                    weight: 8,
+                    opacity: 0.5,
+                    lineJoin: 'round',
+                    lineCap: 'round'
+                }).addTo(routeLayer);
+                routeLine.bringToFront();
+                
+                // Fit map to show entire route
+                const bounds = L.latLngBounds([
+                    [startCoords.lat, startCoords.lon],
+                    [endCoords.lat, endCoords.lon]
+                ]);
+                map.fitBounds(bounds, { padding: [50, 50] });
+                
+                showStatus(`✅ Ruta calculada: ${distance} km, ${duration} min. Ahora presiona "Calcular Tarifa"`, 'success');
                 
             } catch (error) {
+                console.error('[v0] Calculate route error:', error);
                 showStatus(`❌ ${error.message}`, 'error');
             } finally {
                 btn.disabled = false;
@@ -1488,9 +1698,8 @@
                 total,
                 operationalCosts: operationalCosts,
                 rule: appliedRule,
-                mapUrl: currentMapUrl,
+                mapUrl: currentMapUrl, // This is unused now, map is drawn directly
                 quotationNumber: quotationNumber
-                // </CHANGE>
             };
 
             currentTrip = trip;
@@ -1521,7 +1730,7 @@
                         <div style="font-size: 12px; margin-top: 12px; opacity: 0.9;">${appliedRule}</div>
                     </div>
                     <div style="margin-top: 20px;">
-                        <button class="btn btn-warning" style="width: 100%;" onclick="generateQuotation()">📄 Generar Cotización Profesional</button>
+                        <button class="btn-warning" style="width: 100%;" onclick="generateQuotation()">📄 Generar Cotización Profesional</button>
                     </div>
                 </div>
             `;
@@ -1541,6 +1750,54 @@
             }
         }
 
+        async function syncToGoogleSheets(trip) {
+            if (!scriptUrl) {
+                console.log('[v0] No Google Sheets URL configured');
+                return false;
+            }
+            
+            try {
+                console.log('[v0] Syncing to Google Sheets...');
+                const dataToSend = {
+                    date: trip.date,
+                    quotationNumber: trip.quotationNumber,
+                    client: trip.client || 'Sin nombre',
+                    origin: trip.origin,
+                    destination: trip.destination,
+                    distance: trip.distance,
+                    duration: trip.duration,
+                    rateKm: trip.rateKm,
+                    rateMin: trip.rateMin,
+                    toll: trip.toll || 0,
+                    ferry: trip.ferry || 0,
+                    fare: trip.tarifaTotal,
+                    discountAmount: trip.discountAmount || 0,
+                    total: trip.total
+                };
+                
+                console.log('[v0] Data to send:', dataToSend);
+                
+                const response = await fetch(scriptUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(dataToSend)
+                });
+                
+                console.log('[v0] Request sent to Google Sheets (no-cors mode)');
+                // Note: no-cors mode doesn't allow reading the response
+                // If the request completes without error, we assume success
+                return true;
+            } catch (error) {
+                console.error('[v0] Error syncing to Google Sheets:', error);
+                showStatus('⚠️ Error al sincronizar con Google Sheets. Verifica la URL en configuración.', 'warning');
+                return false;
+            }
+        }
+        // </CHANGE>
+
         function generateQuotation() {
             if (!currentTrip) {
                 showStatus('Primero calcula una tarifa', 'warning');
@@ -1549,7 +1806,8 @@
 
             const trip = currentTrip;
             
-            document.getElementById('quotation').innerHTML = `
+            // Create quotation HTML
+            const quotationHTML = `
                 <div class="quotation-card">
                     <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Logo%201-FHIi6qXGRfyVgq4j52QPmNZS7p6s3U.png" alt="Transportes Masic" class="quotation-logo">
                     
@@ -1579,11 +1837,9 @@
                         </div>
                     </div>
 
-                    ${trip.mapUrl ? `
-                        <div class="quotation-map-container">
-                            <iframe src="${trip.mapUrl}"></iframe>
-                        </div>
-                    ` : ''}
+                    <div class="quotation-map-container">
+                        <div id="quotationMap"></div>
+                    </div>
 
                     <div class="quotation-tariff-box">
                         <span>Tarifa${trip.ferry > 0 ? ' + Ferry' : ''}</span>
@@ -1612,49 +1868,70 @@
                     </div>
                 </div>
             `;
-            // </CHANGE>
+            
+            document.getElementById('quotation').innerHTML = quotationHTML;
+            
+            // Create a separate map for the quotation with the route
+            setTimeout(() => {
+                const quotationMapDiv = document.getElementById('quotationMap');
+                if (quotationMapDiv && currentRouteCoordinates) {
+                    // Create quotation map
+                    const quotationMap = L.map('quotationMap', {
+                        zoomControl: false,
+                        dragging: false,
+                        scrollWheelZoom: false,
+                        doubleClickZoom: false,
+                        boxZoom: false,
+                        keyboard: false,
+                        tap: false
+                    });
+                    
+                    // Add OpenStreetMap tiles
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '© OpenStreetMap'
+                    }).addTo(quotationMap);
+                    
+                    // Draw the route
+                    const routeLine = L.polyline(currentRouteCoordinates, {
+                        color: '#1B9AAA',
+                        weight: 5,
+                        opacity: 0.8
+                    }).addTo(quotationMap);
+                    
+                    // Add markers
+                    const startPoint = currentRouteCoordinates[0];
+                    const endPoint = currentRouteCoordinates[currentRouteCoordinates.length - 1];
+                    
+                    L.marker(startPoint, {
+                        icon: L.divIcon({
+                            className: 'custom-marker',
+                            html: '<div style="background: #10B981; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">A</div>',
+                            iconSize: [28, 28],
+                            iconAnchor: [14, 14]
+                        })
+                    }).addTo(quotationMap);
+                    
+                    L.marker(endPoint, {
+                        icon: L.divIcon({
+                            className: 'custom-marker',
+                            html: '<div style="background: #EF4444; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">B</div>',
+                            iconSize: [28, 28],
+                            iconAnchor: [14, 14]
+                        })
+                    }).addTo(quotationMap);
+                    
+                    // Fit bounds to show entire route
+                    quotationMap.fitBounds(routeLine.getBounds(), { padding: [30, 30] });
+                }
+            }, 100);
 
             quotationNumber++;
             localStorage.setItem('quotationNumber', quotationNumber.toString());
-            // </CHANGE>
 
             document.getElementById('quotation').scrollIntoView({ behavior: 'smooth', block: 'start' });
             showStatus('✓ Cotización generada correctamente', 'success');
         }
-
-        async function syncToGoogleSheets(trip) {
-            if (!scriptUrl) return false;
-            try {
-                const dataToSend = {
-                    date: trip.date,
-                    quotationNumber: trip.quotationNumber,
-                    // </CHANGE>
-                    client: trip.client || 'Sin nombre',
-                    origin: trip.origin,
-                    destination: trip.destination,
-                    distance: trip.distance,
-                    duration: trip.duration,
-                    rateKm: trip.rateKm,
-                    rateMin: trip.rateMin,
-                    toll: trip.toll || 0,
-                    ferry: trip.ferry || 0,
-                    fare: trip.tarifaTotal,
-                    discountAmount: trip.discountAmount || 0,
-                    total: trip.total
-                };
-                
-                await fetch(scriptUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(dataToSend)
-                });
-                return true;
-            } catch (error) {
-                console.error('Error syncing to Google Sheets:', error);
-                return false;
-            }
-        }
+        // </CHANGE>
 
         function shareQuotation() {
             if (!currentTrip) return;

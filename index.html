@@ -1587,7 +1587,7 @@
                 const originMarker = L.marker([startCoords.lat, startCoords.lon], {
                     icon: L.divIcon({
                         className: 'custom-marker',
-                        html: '<div style="background: #10B981; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">🅰️</div>',
+                        html: '<div style="background: #10B981; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">O</div>',
                         iconSize: [32, 32],
                         iconAnchor: [16, 16]
                     })
@@ -1598,13 +1598,14 @@
                 const destMarker = L.marker([endCoords.lat, endCoords.lon], {
                     icon: L.divIcon({
                         className: 'custom-marker',
-                        html: '<div style="background: #EF4444; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">🅱️</div>',
+                        html: '<div style="background: #EF4444; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">D</div>',
                         iconSize: [32, 32],
                         iconAnchor: [16, 16]
                     })
                 }).addTo(markersLayer);
                 
                 destMarker.bindPopup(`<strong>📍 Destino</strong><br>${destination}`);
+                // </CHANGE>
                 
                 // Draw the route line
                 const routeCoordinates = route.geometry.coordinates.map(coord => [coord[1], coord[0]]);
@@ -1754,11 +1755,14 @@
         async function syncToGoogleSheets(trip) {
             if (!scriptUrl) {
                 console.log('[v0] No Google Sheets URL configured');
+                showStatus('⚠️ Configura la URL de Google Sheets en Configuración para sincronizar', 'warning');
                 return false;
             }
             
             try {
                 console.log('[v0] Syncing to Google Sheets...');
+                console.log('[v0] Script URL:', scriptUrl);
+                
                 const dataToSend = {
                     date: trip.date,
                     quotationNumber: trip.quotationNumber,
@@ -1775,6 +1779,7 @@
                     discountAmount: trip.discountAmount || 0,
                     total: trip.total
                 };
+                // </CHANGE>
                 
                 console.log('[v0] Data to send:', dataToSend);
                 
@@ -1788,6 +1793,7 @@
                 });
                 
                 console.log('[v0] Request sent to Google Sheets (no-cors mode)');
+                console.log('[v0] Note: no-cors mode does not allow reading response. Check Google Sheets to verify data was saved.');
                 // Note: no-cors mode doesn't allow reading the response
                 // If the request completes without error, we assume success
                 return true;
@@ -1797,7 +1803,6 @@
                 return false;
             }
         }
-        // </CHANGE>
 
         function generateQuotation() {
             if (!currentTrip) {
@@ -1899,14 +1904,14 @@
                         opacity: 0.8
                     }).addTo(quotationMap);
                     
-                    // Add markers
+                    // Add markers with O and D
                     const startPoint = currentRouteCoordinates[0];
                     const endPoint = currentRouteCoordinates[currentRouteCoordinates.length - 1];
                     
                     L.marker(startPoint, {
                         icon: L.divIcon({
                             className: 'custom-marker',
-                            html: '<div style="background: #10B981; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">A</div>',
+                            html: '<div style="background: #10B981; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">O</div>',
                             iconSize: [28, 28],
                             iconAnchor: [14, 14]
                         })
@@ -1915,11 +1920,12 @@
                     L.marker(endPoint, {
                         icon: L.divIcon({
                             className: 'custom-marker',
-                            html: '<div style="background: #EF4444; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">B</div>',
+                            html: '<div style="background: #EF4444; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">D</div>',
                             iconSize: [28, 28],
                             iconAnchor: [14, 14]
                         })
                     }).addTo(quotationMap);
+                    // </CHANGE>
                     
                     // Fit bounds to show entire route
                     quotationMap.fitBounds(routeLine.getBounds(), { padding: [30, 30] });

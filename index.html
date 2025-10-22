@@ -1234,7 +1234,8 @@
 
                 const savedRates = localStorage.getItem('transportRates');
                 if (savedRates) {
-                    rates = JSON.JSON.parse(savedRates);
+                    rates = JSON.parse(savedRates);
+                    // </CHANGE>
                     if (!rates.discounts) {
                         rates.discounts = [5, 10, 15, 20];
                     }
